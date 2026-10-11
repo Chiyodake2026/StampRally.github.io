@@ -172,12 +172,16 @@ function mapTarget(spot){
 const mapUrls=t=>({
   view:`${MAPS}/search/?api=1&query=${encodeURIComponent(t.query)}`,
   route:`${MAPS}/dir/?api=1&destination=${encodeURIComponent(t.query)}&travelmode=walking`,
-  embed:`${MAPS}?q=${encodeURIComponent(t.query)}&output=embed&hl=ja`
+  embed:`${MAPS}?q=${encodeURIComponent(t.query)}&z=17&output=embed&hl=ja`
 });
 const OVERVIEW_URL_OK=/^https:\/\/(www\.google\.(com|co\.jp)\/maps|maps\.app\.goo\.gl|goo\.gl\/maps)/;
 
+const mapFrame=(url,code)=>`<iframe src="${esc(url)}" title="${esc(STAMPS[code].name)}の地図" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>`;
+const mapButtonLabel=(code,open)=>`${STAMPS[code].name}の地図を${open?"閉じる":"表示"}`;
+
 function buildSpots(){
   const data=window.RALLY_SPOTS||{}, preview=window.RALLY_SPOTS_PREVIEW!==false;
+  const showMap=preview&&window.RALLY_SPOTS_PREVIEW_OPEN===true; // true：最初から地図を表示する（画面の近くまで来たときに読み込む）
   const info=STAMP_KEYS.map(k=>{
     const spot=data[k]||{};
     return {k,desc:String(spot.description||"").trim(),target:mapTarget(spot)};
@@ -191,8 +195,8 @@ function buildSpots(){
       body+=`<div class="spot-actions">
         <a class="btn" href="${esc(urls.view)}" target="_blank" rel="noopener noreferrer" aria-label="${name}：Googleマップで場所を見る"><svg class="icon" width="18" height="18" aria-hidden="true"><use href="#icon-pin"></use></svg>Googleマップで場所を見る</a>
         <a class="btn sub" href="${esc(urls.route)}" target="_blank" rel="noopener noreferrer" aria-label="${name}：ここへの行き方（Googleマップ）"><svg class="icon" width="18" height="18" aria-hidden="true"><use href="#icon-route"></use></svg>ここへの行き方</a>
-        ${preview?`<button type="button" class="btn sub" data-map-toggle aria-expanded="false" aria-label="${name}の地図を表示">地図を表示</button>`:""}
-      </div><div class="spot-map" hidden></div>`;
+        ${preview?`<button type="button" class="btn sub" data-map-toggle aria-expanded="${showMap}" aria-label="${esc(mapButtonLabel(k,showMap))}">${showMap?"地図を閉じる":"地図を表示"}</button>`:""}
+      </div><div class="spot-map"${showMap?"":" hidden"}>${showMap?mapFrame(urls.embed,k):""}</div>`;
     } else if(anyInfo){
       body+=`<p class="spot-desc pending">${desc?"地図は準備中です。":"場所は準備中です。"}</p>`;
     }
@@ -214,10 +218,11 @@ $("spotList").addEventListener("click",e=>{
   const item=button.closest(".spot"), box=item.querySelector(".spot-map");
   const open=box.hidden;
   if(open){
-    box.innerHTML=`<iframe src="${esc(item.dataset.embed)}" title="${esc(STAMPS[item.dataset.code].name)}の地図" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>`;
+    box.innerHTML=mapFrame(item.dataset.embed,item.dataset.code);
   } else box.innerHTML="";
   box.hidden=!open;
   button.textContent=open?"地図を閉じる":"地図を表示";
+  button.setAttribute("aria-label",mapButtonLabel(item.dataset.code,open));
   button.setAttribute("aria-expanded",String(open));
 });
 function updateSpots(stamps,fx){

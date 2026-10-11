@@ -23,17 +23,21 @@ window.RALLY_PRIZE = {
 //                 「35.69…, 139.77…」のように表示されるので、前が緯度、後ろが経度です。
 //   mapQuery   ：Googleマップで探すための言葉（施設名など）。住所の代わりに使えます。
 // 住所・座標・mapQuery のどれも入っていないポイントには、地図のリンクを出しません（推測で場所を決めません）。
+// ★仮の場所：6か所すべてに、同じ座標（35°41'36.2"N 139°46'47.1"E）を入れています。
+//   実際の場所が決まったら、ポイントごとの lat / lng（または address / mapQuery）を書き換えてください。
 window.RALLY_SPOTS = {
-  river:  { description: "", address: "", lat: null, lng: null, mapQuery: "" },
-  bridge: { description: "", address: "", lat: null, lng: null, mapQuery: "" },
-  fish:   { description: "", address: "", lat: null, lng: null, mapQuery: "" },
-  island: { description: "", address: "", lat: null, lng: null, mapQuery: "" },
-  water:  { description: "", address: "", lat: null, lng: null, mapQuery: "" },
-  goal:   { description: "", address: "", lat: null, lng: null, mapQuery: "" }
+  river:  { description: "", address: "", lat: 35.693389, lng: 139.77975, mapQuery: "" },
+  bridge: { description: "", address: "", lat: 35.693389, lng: 139.77975, mapQuery: "" },
+  fish:   { description: "", address: "", lat: 35.693389, lng: 139.77975, mapQuery: "" },
+  island: { description: "", address: "", lat: 35.693389, lng: 139.77975, mapQuery: "" },
+  water:  { description: "", address: "", lat: 35.693389, lng: 139.77975, mapQuery: "" },
+  goal:   { description: "", address: "", lat: 35.693389, lng: 139.77975, mapQuery: "" }
 };
 
 // 地図のプレビュー（「地図を表示」を押したときだけGoogleマップを読み込みます）。使わないときは false
 window.RALLY_SPOTS_PREVIEW = true;
+// true：地図を最初から表示する（押さなくても見える。画面の近くまで来たときに読み込みます）。false：「地図を表示」を押したときだけ読み込む
+window.RALLY_SPOTS_PREVIEW_OPEN = true;
 
 // 全ポイントをまとめた地図（Googleマイマップなどの共有URL）。
 // 6か所すべての場所が上に入力されていて、このURLが入っているときだけ、「全ポイントの地図」リンクを表示します。
