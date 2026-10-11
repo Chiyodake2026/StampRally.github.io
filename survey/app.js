@@ -25,7 +25,12 @@ const db=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_ANON_K
 // ブラウザが保存を許可していなくても、画面が止まらないようにする
 const safeGet=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
 const safeSet=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){ /* 保存できなくても、送信は完了している */ } };
-const participant=(new URLSearchParams(location.search).get("participant_id")||safeGet("stamp_rally_participant_id")||"").trim();
+const query=new URLSearchParams(location.search);
+const participant=(query.get("participant_id")||safeGet("stamp_rally_participant_id")||"").trim();
+// 管理者プレビュー（?preview=1）：管理画面にログインしている管理者だけが、コンプリートしていなくても画面を確認できる。
+// 画面を開くだけで、送信しても記録は保存しない（submit_survey は呼ばない）。管理者でなければ、通常どおりの動作になる。
+const wantsPreview=query.get("preview")==="1";
+let previewMode=false;
 const submittedKey="stamp_rally_survey_submitted";
 participantId.value=participant;
 
@@ -43,6 +48,18 @@ const RESULT_MESSAGES={
 	invalid_consent:"プライバシー規約への同意が必要です。",
 	invalid_workshop:"ワークショップへの参加について選択してください。"
 };
+
+// 管理画面で保存されたログイン情報（Supabase Auth）があり、is_admin が true のときだけ true。
+// ログイン情報がない人（参加者）には、通信もしない。
+async function isAdminSession(){
+	try{
+		const key=Object.keys(localStorage).find(k=>/^sb-.+-auth-token$/.test(k));
+		if(!key) return false;
+		const adminDb=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_ANON_KEY,{auth:{persistSession:true,autoRefreshToken:false}});
+		const result=await adminDb.rpc("is_admin");
+		return !result.error&&result.data===true;
+	}catch(e){ return false; }
+}
 
 function block(text){
 	lead.textContent=text;
@@ -93,14 +110,24 @@ document.querySelectorAll("[data-close-privacy]").forEach(button=>button.onclick
 privacyDialog.addEventListener("click",e=>{ if(e.target===privacyDialog) privacyDialog.close(); }); // 背景のタップで閉じる
 
 async function start(){
-	if(!participant) return block(RESULT_MESSAGES.invalid_participant);
+	if(wantsPreview&&await isAdminSession()){
+		previewMode=true;
+		participantId.value=participant||"（プレビュー）";
+		lead.textContent="アンケートの確認画面です。";
+		document.getElementById("previewBanner").hidden=false;
+		surveyForm.hidden=false;
+		loadPrivacy();
+		return;
+	}
+	const previewHint=wantsPreview?" 管理者プレビューを使うには、先に管理画面（admin/）でログインしてください。":"";
+	if(!participant) return block(RESULT_MESSAGES.invalid_participant+previewHint);
 	if(safeGet(submittedKey)===participant) return block(RESULT_MESSAGES.already_submitted);
 	const completion=await db.rpc("is_completed",{p_participant_id:participant});
 	if(completion.error){
 		console.error(completion.error);
 		return block("コンプリート状況を確認できませんでした。通信環境をご確認のうえ、再読み込みしてください。");
 	}
-	if(!completion.data) return block(RESULT_MESSAGES.not_completed+"スタンプラリーのページで取得状況をご確認ください。");
+	if(!completion.data) return block(RESULT_MESSAGES.not_completed+"スタンプラリーのページで取得状況をご確認ください。"+previewHint);
 	lead.textContent="コンプリートおめでとうございます！アンケートにご協力ください。";
 	surveyForm.hidden=false;
 	loadPrivacy();
@@ -115,6 +142,9 @@ surveyForm.onsubmit=async e=>{
 	if(prize && !postalValue) return message.textContent=RESULT_MESSAGES.invalid_postal;
 	if(prize && !phoneValue) return message.textContent=RESULT_MESSAGES.invalid_phone;
 
+	if(previewMode){ // プレビューでは、入力の確認までを行い、送信（記録）はしない
+		return block(prize ? "【プレビュー】送信ありがとうございました。景品の発送先を受け付けました。（記録は保存されていません）" : "【プレビュー】送信ありがとうございました。（記録は保存されていません）");
+	}
 	submitBtn.disabled=true;
 	submitBtn.textContent="送信中…";
 	const result=await db.rpc("submit_survey",{

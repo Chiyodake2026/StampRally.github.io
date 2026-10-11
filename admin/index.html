@@ -3,7 +3,7 @@
 <title>QRスタンプラリー 管理画面</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&display=swap">
-<link rel="stylesheet" href="../brand.css?v=83e38fe7"><link rel="stylesheet" href="style.css?v=d696a022">
+<link rel="stylesheet" href="../brand.css?v=83e38fe7"><link rel="stylesheet" href="style.css?v=a620ab1c">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
 <script src="../js/config.js?v=aae7ba99"></script></head><body>
 <main class="container"><h1><span class="ph">QRスタンプラリー</span> <span class="ph">管理画面</span></h1>
@@ -19,6 +19,7 @@
 <label class="toggle"><input type="checkbox" id="autoRefresh" checked> 30秒ごとに自動更新</label>
 <label class="toggle"><input type="checkbox" id="showExcluded"> 除外した参加者も表示</label>
 <button id="csvShippingBtn">景品発送CSV</button><button id="csvSurveyBtn">アンケートCSV</button>
+<a id="surveyPreviewLink" class="linkbtn" href="../survey/?preview=1" target="_blank" rel="noopener">アンケート画面を確認（プレビュー）</a>
 <button id="logoutBtn" class="secondary">ログアウト</button>
 </div>
 <p id="status"></p><p id="notice" class="notice" role="status" hidden></p>
