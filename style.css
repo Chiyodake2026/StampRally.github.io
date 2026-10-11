@@ -1,6 +1,5 @@
 /* スタンプラリー画面のスタイル。色・フォント・角丸は brand.css の変数を使います。 */
 .icon-defs{position:absolute;width:0;height:0;overflow:hidden}
-.hidden{display:none}
 .icon{width:24px;height:24px;flex:none}
 
 /* ヘッダー */
@@ -30,18 +29,18 @@
 .banner-remain #remain{font-size:clamp(38px,12vw,48px);display:inline-block}
 .banner-remain .unit{font-size:18px;font-weight:700}
 .count.bump,#remain.bump{animation:bump .6s var(--ease)}
-.done-wrap{display:none;flex-direction:column;align-items:flex-end;gap:var(--space-1)}
+.done-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:var(--space-1)}
 .done-icon{width:40px;height:40px;padding:8px;border-radius:50%;background:var(--color-accent);color:var(--color-primary);box-sizing:border-box}
-.banner[data-state=complete] .remain-wrap{display:none}
-.banner[data-state=complete] .done-wrap{display:flex}
 .banner[data-state=complete].is-new .done-icon{animation:press .7s .2s var(--ease) both}
 .banner-bar{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px;margin:18px 0 14px}
 .seg{position:relative;height:10px;border-radius:var(--radius-pill);background:rgba(255,255,255,.24);overflow:hidden}
-.seg:after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--color-accent);transform:scaleX(0);transform-origin:left}
+.seg:after{content:"";position:absolute;top:0;right:0;bottom:0;left:0;border-radius:inherit;background:var(--color-accent);transform:scaleX(0);transform-origin:left}
 .seg.on:after{transform:scaleX(1)}
 .seg.is-new:after{animation:seg-fill .8s .1s var(--ease) both}
 .banner-message{margin:0;font-size:17px;font-weight:700;line-height:1.55}
 .banner-note{margin:var(--space-2) 0 0;font-size:13px;line-height:1.6;color:var(--color-on-primary-muted)}
+
+.storage-note{margin:0 0 var(--space-4);padding:var(--space-3) var(--space-4);border-radius:var(--radius-control);background:var(--color-white);border:2px dashed var(--color-secondary);font-size:14px;line-height:1.7}
 
 /* 川の図：点線が暗渠、獲得した区間に水が現れる */
 .river{border-radius:var(--radius-control);background:var(--tint-accent-12);border:2px solid var(--color-line);overflow:hidden}
@@ -124,7 +123,6 @@
 .survey-link:after{content:"→";position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:20px}
 .survey-link-title{display:block;font-weight:700;font-size:17px}
 .survey-link-sub{display:block;font-size:13px;color:var(--color-on-primary-muted);margin-top:2px}
-.survey-link.hidden{display:none}
 
 /* スタンプポイントの案内 */
 .spot-list{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-3)}

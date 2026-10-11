@@ -22,7 +22,10 @@ let privacyVersion=null;
 const db=window.supabase.createClient(window.SUPABASE_URL,window.SUPABASE_ANON_KEY,{
 	auth:{persistSession:false,autoRefreshToken:false}
 });
-const participant=(new URLSearchParams(location.search).get("participant_id")||localStorage.getItem("stamp_rally_participant_id")||"").trim();
+// ブラウザが保存を許可していなくても、画面が止まらないようにする
+const safeGet=k=>{ try{ return localStorage.getItem(k); }catch(e){ return null; } };
+const safeSet=(k,v)=>{ try{ localStorage.setItem(k,v); }catch(e){ /* 保存できなくても、送信は完了している */ } };
+const participant=(new URLSearchParams(location.search).get("participant_id")||safeGet("stamp_rally_participant_id")||"").trim();
 const submittedKey="stamp_rally_survey_submitted";
 participantId.value=participant;
 
@@ -91,7 +94,7 @@ privacyDialog.addEventListener("click",e=>{ if(e.target===privacyDialog) privacy
 
 async function start(){
 	if(!participant) return block(RESULT_MESSAGES.invalid_participant);
-	if(localStorage.getItem(submittedKey)===participant) return block(RESULT_MESSAGES.already_submitted);
+	if(safeGet(submittedKey)===participant) return block(RESULT_MESSAGES.already_submitted);
 	const completion=await db.rpc("is_completed",{p_participant_id:participant});
 	if(completion.error){
 		console.error(completion.error);
@@ -136,11 +139,11 @@ surveyForm.onsubmit=async e=>{
 		return message.textContent="送信に失敗しました。時間をおいて再度お試しください。";
 	}
 	if(result.data==="ok"){
-		localStorage.setItem(submittedKey,participant);
+		safeSet(submittedKey,participant);
 		return block(prize ? "送信ありがとうございました。景品の発送先を受け付けました。" : "送信ありがとうございました。");
 	}
 	if(result.data==="already_submitted"){
-		localStorage.setItem(submittedKey,participant);
+		safeSet(submittedKey,participant);
 		return block(RESULT_MESSAGES.already_submitted);
 	}
 	message.textContent=RESULT_MESSAGES[result.data]||"送信できませんでした。入力内容をご確認ください。";

@@ -52,6 +52,8 @@
 }
 
 *{box-sizing:border-box}
+/* hidden属性で隠した要素は、他のCSSの display 指定に関係なく必ず隠す */
+[hidden]{display:none!important}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--color-bg);color:var(--color-text);font-family:var(--font-ja);line-height:1.7;-webkit-tap-highlight-color:transparent}
 body:before{content:"";display:block;height:6px;background:var(--color-primary)}

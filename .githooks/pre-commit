@@ -1,0 +1,10 @@
+#!/bin/sh
+# コミットの直前に、HTMLが読み込むCSS・JavaScriptの版（?v=…）を自動で更新する。
+# 有効にする方法（最初に1回だけ）：  git config core.hooksPath .githooks
+changed=$(python3 scripts/stamp_assets.py)
+for f in $changed; do
+  case "$f" in
+    *.html) git add "$f" ;;
+  esac
+done
+exit 0

@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#30557e">
+  <meta name="color-scheme" content="light">
   <title>みんなで川をつくろう｜デジタルスタンプラリー</title>
   <!-- 欧文・数字：Josefin Sans Bold（Google Fonts / SIL Open Font License） -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,12 +13,13 @@
   <!-- 日本語：筑紫A丸ゴシックのWebフォントを契約した場合は、ここに読み込みタグを追加します（README参照）
   <link rel="stylesheet" href="https://use.typekit.net/（キットID）.css">
   -->
-  <link rel="stylesheet" href="brand.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="brand.css?v=83e38fe7">
+  <link rel="stylesheet" href="style.css?v=24556202">
 </head>
 <body>
+<noscript><p style="margin:16px;font-size:14px">このページを使うには、ブラウザのJavaScriptを有効にしてください。</p></noscript>
 <!-- スタンプのアイコン（線画）。スタンプ枠・川の図・バナーで共通に使います。線の太さ・端の形はすべて同じです。 -->
-<svg class="icon-defs" aria-hidden="true" focusable="false">
+<svg class="icon-defs" width="0" height="0" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
   <symbol id="icon-river" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17v-6a7 7 0 0 1 14 0v6"/><path d="M3 20.5c2-1.2 4-1.2 6 0s4 1.2 6 0 4-1.2 6 0"/></symbol>
   <symbol id="icon-bridge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h20"/><path d="M4 8v9M20 8v9"/><path d="M4 15a8 5 0 0 1 16 0"/><path d="M3 20.5c2-1.2 4-1.2 6 0s4 1.2 6 0 4-1.2 6 0"/></symbol>
   <symbol id="icon-fish" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2.5-4.2 8.5-6 14 0-5.5 6-11.5 4.2-14 0z"/><path d="M17 12l4-3.5v7z"/><circle cx="8" cy="11.2" r=".9" fill="currentColor" stroke="none"/></symbol>
@@ -49,8 +51,8 @@
           <span class="banner-label">あと</span>
           <span class="banner-figure"><span id="remain" class="num">6</span><span class="unit">個</span></span>
         </span>
-        <span class="done-wrap">
-          <svg class="icon done-icon" aria-hidden="true"><use href="#icon-check"></use></svg>
+        <span class="done-wrap" hidden>
+          <svg class="icon done-icon" width="40" height="40" aria-hidden="true"><use href="#icon-check"></use></svg>
           <span class="banner-label en">COMPLETE</span>
         </span>
       </p>
@@ -60,10 +62,13 @@
     <p id="bannerNote" class="banner-note" hidden></p>
   </section>
 
+  <!-- ブラウザが記録の保存を許可していないときの案内（js/app.js が表示します） -->
+  <p id="storageNote" class="storage-note" role="status" hidden><strong>このブラウザでは、記録を保存できません。</strong><br>プライベートブラウズや、制限のあるアプリ内ブラウザでは、取得したスタンプが次のQRコードの読み取りに引き継がれません。SafariやChromeなどの通常のブラウザで、開き直してください。</p>
+
   <!-- QRを読み取った結果（獲得・獲得済み・通信エラー・完成） -->
   <section id="scanResult" class="scan-result" role="status" aria-live="polite" hidden></section>
 
-  <a id="surveyLink" class="survey-link hidden" href="survey/">
+  <a id="surveyLink" class="survey-link" href="survey/" hidden>
     <span class="survey-link-title">アンケートに回答する</span>
     <span class="survey-link-sub">コンプリートした方へ。景品の希望もこちらから</span>
   </a>
@@ -96,8 +101,8 @@
 </main>
 
 <footer class="en">DIGITAL STAMP RALLY PROTOTYPE</footer>
-<script src="js/config.js"></script>
-<script src="js/rally-data.js"></script>
-<script src="js/app.js"></script>
+<script src="js/config.js?v=aae7ba99"></script>
+<script src="js/rally-data.js?v=cb92fd01"></script>
+<script src="js/app.js?v=bdc0f8ca"></script>
 </body>
 </html>

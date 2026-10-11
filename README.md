@@ -37,14 +37,14 @@ Supabaseのダッシュボード（Table Editor・SQL Editor）からは、こ�
 
 例：
 
-- `https://あなたのサイト/index.html?stamp=river`
-- `https://あなたのサイト/index.html?stamp=bridge`
-- `https://あなたのサイト/index.html?stamp=fish`
-- `https://あなたのサイト/index.html?stamp=island`
-- `https://あなたのサイト/index.html?stamp=water`
-- `https://あなたのサイト/index.html?stamp=goal`
+- `https://あなたのサイト/?stamp=river`
+- `https://あなたのサイト/?stamp=bridge`
+- `https://あなたのサイト/?stamp=fish`
+- `https://あなたのサイト/?stamp=island`
+- `https://あなたのサイト/?stamp=water`
+- `https://あなたのサイト/?stamp=goal`
 
-各URLをQRコード化して、対応する場所に設置します。
+各URLをQRコード化して、対応する場所に設置します。「あなたのサイト」は、現在の公開URL（`https://chiyodake2026.github.io`）です。実際のURLは、`QR_URLS.txt` にあります（公開URLの決め方は、「13」を参照）。
 
 ## 4. 記録される内容（Supabase）
 
@@ -240,50 +240,120 @@ Googleの既知の不具合で、ブラウザで複数のGoogleアカウント�
 - **全ポイントをまとめた地図**：Googleマイマップなどの共有URLを `RALLY_SPOTS_OVERVIEW_URL` に入力すると、「全ポイントの地図を開く」を表示します。**6か所すべての場所が入力されているとき**だけ表示されます（Googleマップ以外のURLは無視します）。
 - 場所を公開してよいか（会場・設置場所の都合）は、運営側で確認してから入力してください。
 
-## 12. 公開URLを変更する場合（調査結果）
+## 12. 公開前のチェック（毎回）
 
-現在の公開URLは `https://koeisuzuki.github.io/Chiyodake/` です。GitHub PagesのURLは「アカウント名＋リポジトリ名」で決まるため、HTMLやJavaScriptの変更だけでは、URLからアカウント名を消せません。
+GitHub Pagesは、ファイルをブラウザに10分間保存（キャッシュ）させます。公開した直後に、HTMLだけが新しく、CSSが古いままという組み合わせになると、
+背景やフォントが古いままになったり、本来は隠れているはずの表示が見えたりすることがあります。これを防ぐため、HTMLが読み込むファイルのURLに、
+ファイルの中身から作った版（`style.css?v=1a2b3c4d`）を付けています。**CSS・JavaScript・`js/rally-data.js` などを変更したら、コミットの前に、次を実行してください。**
 
-### 調べたこと
-- リポジトリ `KoeiSuzuki/Chiyodake` は公開（public）で、GitHub Pagesが有効です。所有者は個人アカウントです。
-- サイトのファイルは、すべて相対パスです（`/Chiyodake/` のような絶対パスの記述はありません）。**URLを変えても、コードの修正は不要**です。
-  変更が必要なのは、`QR_URLS.txt`、READMEの例、配布済みのQRコード・リンク、SupabaseのAuth設定にサイトURLを登録している場合はその値、Adobe FontsなどでドメインやURLを登録している場合はその値です。
-- 「Chiyodake2026」という名前は、調査時点で、ユーザー名としてもOrganization名としても使われていませんでした。
-- GitHubの公式の説明では、リポジトリ名を変更すると、**Pagesのサイトだけは旧URLから新URLへ自動転送されません**（旧URLは404になります）。GitHubは、名前の変更に左右されないよう独自ドメインの利用を勧めています。
-- ブラウザの保存データ（localStorage：参加者ID・取得済みスタンプ）は、**ドメインごと**に分かれています。ドメインが変わる方法（BとC）では、参加者の進み具合が引き継がれません。**QRコードの配布前、またはイベント開始前に切り替える**のが安全です。
+```
+python3 scripts/stamp_assets.py      # 版を更新する（変更があったHTMLの名前が表示されます）
+python3 scripts/check_site.py        # サイト全体の整合性を検査する（「0 件の問題」になることを確認）
+```
 
-### 選択肢の比較
-| 方法 | 新しいURLの例 | 個人名 | 費用 | 手間 | 注意点 |
-|---|---|---|---|---|---|
-| A. リポジトリ名を変更 | `koeisuzuki.github.io/Chiyodake2026/` | **残る** | 無料 | 小（数分） | ドメインが変わらないため、参加者の進み具合は保たれる。旧URLは404になる |
-| B. 新しいGitHubアカウントで公開 | `chiyodake2026.github.io/` | 消える | 無料 | 中 | 下記の注意。ドメインが変わる |
-| C. 独自ドメイン | `（取得したドメイン）/` | 消える | ドメイン代（年額） | 中〜大（DNS設定） | URLがGitHubのアカウント名・リポジトリ名に左右されなくなり、最も安定する。ドメインが変わる |
+- `check_site.py` が調べること：HTMLの構造・IDの重複、JavaScriptが参照するIDの有無、読み込むファイルの存在、CSS変数の定義、ブランドカラー以外の色が使われていないか、フォントファイルが混ざっていないか、版が最新か、JavaScriptの文法、秘密鍵が含まれていないか、`js/config.js` が変更されていないか。
+- **自動で実行したい場合（最初に1回だけ）：** ターミナルで `git config core.hooksPath .githooks` を実行すると、コミットのたびに、版が自動で更新されます。
+- 公開後、スマートフォンで古い表示が残る場合は、ブラウザの履歴・キャッシュを消すか、10分ほど待ってから開き直してください。
 
-- **Bの注意：** GitHubの利用規約では、1人が無料の個人アカウントを複数持つことは認められていません（機械用のアカウントを除く）。
-  「Chiyodake2026」は、**個人アカウントではなくOrganization（組織）**として作成するのが適切です（Organizationの作成が規約上問題ないかは、念のためGitHubの規約・サポートで確認してください）。
-  Organizationのサイトは `chiyodake2026.github.io` になります。リポジトリを移す場合も、コミット履歴には作成者名（SUZUKI Koei）が残ります。履歴を残したくない場合は、ファイルだけを新しいリポジトリに置く方法があります。
-- **おすすめ：** URLをまだ配布していないなら **B（Organizationを作成）** が、無料で個人名をURLから消せます。予算に余裕があるなら、**将来の変更にも強いC**が最も安定します（BとCは併用できます。まずBで公開し、あとから独自ドメインを接続すれば、URLは変わらずに済みます）。
-  すでにQRコードを配布済みなら、旧URLに「転送ページ」を残す必要があります（下記）。
+## 13. 公開URL `https://chiyodake2026.github.io/` への移行（方法B）
 
-### 旧URLから新URLへの転送
-GitHub Pagesには、サーバー側の転送（301）の機能はありません。旧サイトに、JavaScriptで新URLへ移動するページを置く方法があります（`?stamp=river` などの内容も引き継げます）。
+個人名（koeisuzuki）をURLから消すため、**GitHubのOrganization（組織）「Chiyodake2026」** のリポジトリ **`chiyodake2026.github.io`** でサイトを公開します。
+このリポジトリ名は、Organizationの「トップページ用」の特別な名前で、公開URLに、リポジトリ名が付きません。
 
-- 旧リポジトリの `index.html` に、次の内容を置きます（`新URL` を書き換えます）。旧サイトを残すことになるため、旧リポジトリは削除しないでください。
+- サイトのトップ：`https://chiyodake2026.github.io/`
+- アンケート：`https://chiyodake2026.github.io/survey/`
+- 管理画面：`https://chiyodake2026.github.io/admin/`
 
-  ```html
-  <!doctype html><meta charset="utf-8"><title>移転しました</title>
-  <script>location.replace("https://新URL/" + location.search + location.hash);</script>
-  <noscript><meta http-equiv="refresh" content="0; url=https://新URL/"></noscript>
-  <p>新しいURLへ移動します：<a href="https://新URL/">https://新URL/</a></p>
-  ```
+作業用のフォルダは、`chiyodake2026.github.io`（このリポジトリのクローン）です。以後の編集・`git push` は、このフォルダで行います。
 
-- `survey/` など下の階層のURLにも対応する場合は、同じ内容の `404.html`（`location.replace("https://新URL" + location.pathname.replace(/^\/Chiyodake/, "") + location.search + location.hash)` のように、パスも引き継ぐもの）を置きます。
-- 注意：転送ページは、旧ドメインから見るとlocalStorageを持っているので、必要なら参加者ID・取得済みスタンプを新URLに引き継ぐ処理を追加できます（実装には、新しいサイト側の受け取り処理も必要です）。
+### 先に知っておくこと
+- **参加者の進み具合：** ブラウザの保存データ（参加者ID・取得済みスタンプ）は、サイトのドメイン（`https://〜` の部分）ごとに分かれているため、ドメインが変わると、そのままでは引き継がれません。
+  そのため、旧サイトに置く転送ページ（`migration/old-site-stub/`）が、旧URLを開いた人の参加者ID・取得済みスタンプを新サイトに渡し、新サイトが受け取ります（`js/app.js` の `importMigration`）。
+  すでにQRコードを配布済みでも、旧URLを開けば、進み具合が引き継がれます。**ただし、旧URLを一度も開かず、新URLを先に開いた人は、新しい参加者になります。**
+- **旧URLは、削除しないでください。** 旧リポジトリは、転送専用のページとして残します（削除すると、旧URLが404になり、配布済みのQRコードが使えなくなります）。
+- 個人名は、URLからは消えますが、コミット履歴には作成者名が残ります。
+- **公開に必要な条件：** 無料プランのGitHub Pagesは、リポジトリを **Public（公開）** にする必要があります。公開されるのは、サイトのファイルです。`js/config.js` のSupabaseの公開用キー（publishable key）は、ブラウザに見える前提のものです。秘密のキー（service_role）は、置かないでください。
+- リポジトリ名を `StampRally.github.io` から変更したため、`https://chiyodake2026.github.io/StampRally.github.io/` は、もう使えません（このURLでQRコードを作っていた場合は、作り直してください）。
 
-### GitHub側で必要な操作（いずれも、実行前に運営者の承認が必要です。このリポジトリの作業では、実行していません）
-- A：リポジトリの Settings > General > Repository name で名前を変更
-- B：GitHubでOrganization「Chiyodake2026」を作成 → リポジトリを作成または移転（Settings > General > Transfer）→ 公開元の設定（Settings > Pages）→ 旧リポジトリに転送ページを置く
-- C：ドメインを取得 → DNSを設定（GitHub Pagesのドキュメント参照）→ Settings > Pages > Custom domain に入力し、「Enforce HTTPS」を有効にする
+### 手順（進み具合の目安は、末尾の表）
+
+**1〜2. Organizationとリポジトリの作成：完了済み**
+Organization「Chiyodake2026」と、Publicのリポジトリ `chiyodake2026.github.io` は、作成済みです（新しく作る場合は、GitHubの「New organization」「New repository」で、同じ名前・Publicで作成します）。
+
+**3. 最新のファイルを、新しいリポジトリに送る**（ターミナル・`chiyodake2026.github.io` フォルダで）
+```
+python3 scripts/stamp_assets.py      # 版を更新する
+python3 scripts/check_site.py        # 「0 件の問題」になることを確認する
+git add -A
+git commit -m "ブランド統一・不具合修正・移行準備"
+git push
+```
+- 初回の `git push` で、GitHubのユーザー名とパスワード（またはアクセストークン）を聞かれたら、ご自身のアカウントで認証します。
+- `git push` が拒否された場合は、`git pull --rebase` のあと、もう一度 `git push` します。
+
+**4. 作業フォルダの接続先：不要**
+`chiyodake2026.github.io` フォルダは、最初から新しいリポジトリにつながっているため、接続先の切り替え（`git remote` の変更）は不要です。
+以前の作業フォルダ `Chiyodake` は、使用しないでください（誤って旧リポジトリに push しないため）。
+
+**5. GitHub Pagesを有効にする：完了済み（確認のみ）**
+1. `chiyodake2026.github.io` の「Settings」 → 左の「Pages」で、Source が **Deploy from a branch**、Branch が **main / (root)** になっていることを確認する
+2. 「Enforce HTTPS」が有効であることを確認する
+
+**6. 新しいURLで動作を確認する**（手順3のあと、1〜3分待ってから）
+1. `https://chiyodake2026.github.io/` を、スマートフォンで開き、背景・フォント・バナーが、アンケート画面と同じ見た目であることを確認する（古い表示が残る場合は、10分ほど待つか、履歴・キャッシュを消す）
+2. `https://chiyodake2026.github.io/?stamp=river` などを開き、スタンプが取れることを確認する（確認用の記録が残るので、管理画面の「テストデータの除外」で除外してください）
+3. `https://chiyodake2026.github.io/survey/` と `/admin/` が開けることを確認する（管理画面は、新しいURLでは、もう一度ログインが必要です。ブックマークも更新してください）
+
+**7. 旧サイトを、転送ページに置き換える**（ターミナル。**6の確認が終わってから**）
+```
+cd ..
+git clone https://github.com/KoeiSuzuki/Chiyodake.git Chiyodake-old
+cd Chiyodake-old
+git rm -r -q .
+cp ../chiyodake2026.github.io/migration/old-site-stub/index.html ../chiyodake2026.github.io/migration/old-site-stub/404.html .
+git add index.html 404.html
+git commit -m "新しいサイトへの転送ページに置き換え"
+git push
+```
+- 旧リポジトリの Settings > Pages が、引き続き有効（main / root）であることを確認してください。
+- 転送先は、2つのファイルの `NEW_BASE`（現在：`https://chiyodake2026.github.io`）です。独自ドメインを設定したときは、`NEW_BASE` を書き換えて、旧リポジトリに push し直してください（末尾に `/` は付けません）。
+
+**8. 旧URLからの転送を確認する**
+- `https://koeisuzuki.github.io/Chiyodake/?stamp=river` をスマートフォンで開き、`https://chiyodake2026.github.io/` に移動して、スタンプが取れることを確認する
+- 旧URLでスタンプを取ったことのある端末では、移動後に、「以前の進み具合を引き継ぎました」と表示される
+
+**9. 残りの更新**
+- QRコードを、新しいURL（`QR_URLS.txt` の新URL）で作り直す（旧URLのQRも、転送で使えますが、新しいURLにすることをおすすめします）
+- Supabaseの「Authentication」 > 「URL Configuration」に、サイトのURLを登録している場合は、新しいURLに変更する（登録していなければ、不要です）
+- Adobe Fontsなどで、公開するドメインを登録している場合は、公開するドメイン（`chiyodake2026.github.io` や独自ドメイン）を追加する
+- Googleスプレッドシート連携（Apps Script）は、Supabaseに直接つなぐため、変更は不要です
+
+| 手順 | 内容 | 状態 |
+|---|---|---|
+| 1〜2 | Organization・リポジトリの作成 | 完了 |
+| 3 | 最新のファイルを push | 運営者が実行 |
+| 4 | 接続先の切り替え | 不要 |
+| 5 | Pagesの有効化 | 完了（確認のみ） |
+| 6 | 新URLでの動作確認 | 手順3のあと |
+| 7〜8 | 旧サイトを転送ページに置き換え・確認 | 手順6のあと |
+| 9 | QRコードの作り直しなど | 最後 |
+
+### 独自ドメイン（`.com` など）を使う
+GitHub PagesのSettings > Pages > **Custom domain** には、`.com` などの一般的なドメインを設定できます。**ドメインは、レジストラ（ドメインを販売する会社）で購入する必要があり、年額の費用がかかります**（金額はレジストラや種類によって異なります。購入前にご確認ください）。
+
+1. **ドメインを取得する：** 好みのレジストラでドメイン（例：`chiyodake.com`）を購入する。
+2. **（推奨）ドメインの所有を確認する：** GitHubの、Organization「Chiyodake2026」の Settings > Pages > 「Add a domain」から、ドメインを確認（verify）する。画面に表示された `TXT` レコードを、レジストラのDNS設定に追加します。他の人にドメインを乗っ取られることを防ぎます。
+3. **DNSを設定する**（レジストラの画面）。次のどちらかです。
+   - **`www.chiyodake.com` のようなサブドメインを使う場合（簡単）：** `CNAME` レコードを追加し、名前 `www`、値 `chiyodake2026.github.io`
+   - **`chiyodake.com`（apex）を使う場合：** `A` レコードを4つ追加し、値は、`185.199.108.153`、`185.199.109.153`、`185.199.110.153`、`185.199.111.153`（IPv6を使う場合は、`AAAA` に `2606:50c0:8000::153`、`2606:50c0:8001::153`、`2606:50c0:8002::153`、`2606:50c0:8003::153`）
+   - 最新の値は、GitHubの公式ドキュメント「Managing a custom domain for your GitHub Pages site」で確認してください。
+4. **GitHubで設定する：** リポジトリ `chiyodake2026.github.io` の Settings > Pages > Custom domain にドメインを入力して「Save」。リポジトリの直下に `CNAME` というファイルが自動で追加されるので、ターミナルで `git pull` して取り込む（このファイルは、消さないでください）。
+5. **HTTPSを有効にする：** DNSが反映されるまで、数分〜最大24時間かかります。「Enforce HTTPS」にチェックが入れられるようになったら、チェックを入れる。
+6. **動作を確認する：** `https://（独自ドメイン）/?stamp=river` が開き、スタンプが取れることを確認する。独自ドメインを設定すると、`https://chiyodake2026.github.io/` も、独自ドメインに自動で転送されます。
+7. **転送ページと、QRコードを更新する：** 手順7の `NEW_BASE` を `https://（独自ドメイン）` に書き換える。`QR_URLS.txt` の新URLも、独自ドメインに更新して、QRコードを作り直す。
+
+- 独自ドメインを設定した場合も、ドメインが変わるため、`github.io` のURLで保存された進み具合は、そのままでは引き継がれません（`github.io` 側のURLを開けば、独自ドメインに転送されますが、保存データは移動しません）。**QRコードを配布する前に、最終的なドメインを決めてください。**
+- ドメインの更新を忘れると、サイトが開けなくなります。自動更新を有効にすることをおすすめします。
 
 ## 注意
 

@@ -1,4 +1,16 @@
-QRコードURL一覧（公開URL設定後にドメイン部分を置換）
+QRコードURL一覧
+
+■ 新URL（Organization「Chiyodake2026」のリポジトリ「chiyodake2026.github.io」で公開）
+  ※ 最新のファイルを push して、Pagesに反映されてから使用してください。
+  ※ QRコードを配布する前に、公開URLを確定してください（独自ドメインを使う場合は、先に設定してください）。URLのドメインが変わると、参加者の保存データ（参加者ID・取得済みスタンプ）は、そのままでは引き継がれません。
+https://chiyodake2026.github.io/?stamp=river
+https://chiyodake2026.github.io/?stamp=bridge
+https://chiyodake2026.github.io/?stamp=fish
+https://chiyodake2026.github.io/?stamp=island
+https://chiyodake2026.github.io/?stamp=water
+https://chiyodake2026.github.io/?stamp=goal
+
+■ 旧URL（移行が完了するまで有効。移行後は、転送ページから新URLへ自動で移動します）
 https://koeisuzuki.github.io/Chiyodake/?stamp=river
 https://koeisuzuki.github.io/Chiyodake/?stamp=bridge
 https://koeisuzuki.github.io/Chiyodake/?stamp=fish

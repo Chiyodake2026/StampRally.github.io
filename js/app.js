@@ -7,23 +7,77 @@ const STAMPS = {
   "goal": {name:"ゴール"}
 };
 const STAMP_KEYS = Object.keys(STAMPS);
+// "constructor" や "__proto__" のような名前を、スタンプとして受け付けないよう、必ずこの関数で確かめる
+const isStamp = code => STAMP_KEYS.includes(code);
 
+// ---- 端末への保存 ----
+// ブラウザが保存を許可していない場合（プライベートブラウズや、制限のあるアプリ内ブラウザなど）でも、
+// 画面が止まらないようにします。その場合は、このページを開いている間だけ、メモリに保存します。
 const participantKey = "stamp_rally_participant_id";
+const timesKey = "stamp_rally_stamp_times";
+const pendingKey = "stamp_rally_pending";
+const stampsKey = "stamp_rally_stamps";
+const surveyKey = "stamp_rally_survey_submitted";
+const memoryStore = new Map();
+let storageBlocked = false;
+const store = {
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ storageBlocked=true; return memoryStore.has(k)?memoryStore.get(k):null; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ storageBlocked=true; memoryStore.set(k,String(v)); } },
+  remove(k){ try{ localStorage.removeItem(k); }catch(e){ storageBlocked=true; memoryStore.delete(k); } }
+};
+// 保存されたスタンプの一覧を読む。壊れた値や、スタンプではない名前は取り除く
+function readStampList(key){
+  try{
+    const value=JSON.parse(store.get(key)||"[]");
+    return Array.isArray(value)?[...new Set(value.filter(isStamp))]:[];
+  }catch(e){ return []; }
+}
+
+// ---- 旧サイトからの引き継ぎ ----
+// 公開URLを変更したとき、旧サイトの転送ページが、参加者ID・取得済みスタンプを、URLの「#m=…」に入れて渡します
+// （migration/old-site-stub/）。この端末にまだ記録がない（初めて開いた）ときだけ、受け取って保存します。
+function importMigration(){
+  const raw=location.hash;
+  if(!raw.startsWith("#m=")) return null;
+  history.replaceState(null,"",location.pathname+location.search); // 受け取ったら（値が正しくなくても）URLから消す
+  try{
+    const m=/^#m=([A-Za-z0-9_-]+)$/.exec(raw);
+    if(!m) return null;
+    if(store.get(participantKey)||store.get(stampsKey)) return null; // すでにある記録は、上書きしない
+    let b64=m[1].replace(/-/g,"+").replace(/_/g,"/"); while(b64.length%4) b64+="=";
+    const data=JSON.parse(atob(b64));
+    if(!data||data.v!==1||!/^[0-9A-Za-z]{4,64}$/.test(String(data.id))) return null;
+    const list=v=>[...new Set((Array.isArray(v)?v:[]).filter(isStamp))];
+    const stamps=list(data.stamps), pending=list(data.pending), times={};
+    if(data.times&&typeof data.times==="object") for(const k of stamps){
+      const t=data.times[k]; if(typeof t==="string"&&!Number.isNaN(Date.parse(t))) times[k]=new Date(t).toISOString();
+    }
+    store.set(participantKey,data.id);
+    store.set(stampsKey,JSON.stringify(stamps));
+    store.set(timesKey,JSON.stringify(times));
+    if(pending.length) store.set(pendingKey,JSON.stringify(pending));
+    if(data.survey===data.id) store.set(surveyKey,data.id);
+    return {stamps:stamps.length};
+  }catch(e){ return null; }
+}
+const migrated = importMigration();
+
 const participantId = getOrCreateParticipantId();
 document.getElementById("participantId").textContent = participantId;
 document.getElementById("total").textContent = STAMP_KEYS.length;
 
 function getOrCreateParticipantId(){
-  let id = localStorage.getItem(participantKey);
+  let id = store.get(participantKey);
   if (!id) {
     id = crypto.randomUUID ? crypto.randomUUID().replaceAll("-","").slice(0,10).toUpperCase()
                            : Math.random().toString(36).slice(2,12).toUpperCase();
-    localStorage.setItem(participantKey,id);
+    store.set(participantKey,id);
   }
   return id;
 }
 
-const icon=code=>`<svg class="icon" aria-hidden="true"><use href="#icon-${code}"></use></svg>`;
+// width/height も指定しておく（スタイルシートが読み込めなくても、アイコンが巨大にならないように）
+const icon=code=>`<svg class="icon" width="24" height="24" aria-hidden="true"><use href="#icon-${code}"></use></svg>`;
 const stampNo=code=>String(STAMP_KEYS.indexOf(code)+1).padStart(2,"0");
 const formatTime=iso=>new Date(iso).toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"});
 const surveyUrl=()=>`survey/?participant_id=${encodeURIComponent(participantId)}`;
@@ -38,6 +92,9 @@ const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 const PRIZE_REQUIRED=STAMP_KEYS.length;
 
 function haptic(pattern){
+  // Chromeは、画面を一度も触っていないページからのバイブレーションを拒否し、コンソールにエラーを出す。
+  // QRコードから開いた直後はその状態なので、触れたあとだけ呼ぶ（iPhoneのSafariは、バイブレーション自体に未対応）
+  if(navigator.userActivation&&!navigator.userActivation.hasBeenActive) return;
   try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(error){ /* 未対応の端末では何もしない */ }
 }
 
@@ -85,6 +142,9 @@ function renderBanner(stamps,fx){
   const {state,message}=bannerContent(got,total);
   const banner=$("progressBanner"), countEl=$("count"), remainEl=$("remain"), bar=$("bannerBar");
   banner.dataset.state=state;
+  // 「あと◯個」と「COMPLETE」の表示は、CSSではなく hidden 属性で切り替える
+  document.querySelector(".remain-wrap").hidden=state==="complete";
+  document.querySelector(".done-wrap").hidden=state!=="complete";
   countEl.textContent=got;
   remainEl.textContent=remain;
   $("total").textContent=total;
@@ -129,8 +189,8 @@ function buildSpots(){
     if(desc) body+=`<p class="spot-desc">${esc(desc)}</p>`;
     if(target){
       body+=`<div class="spot-actions">
-        <a class="btn" href="${esc(urls.view)}" target="_blank" rel="noopener noreferrer" aria-label="${name}：Googleマップで場所を見る"><svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>Googleマップで場所を見る</a>
-        <a class="btn sub" href="${esc(urls.route)}" target="_blank" rel="noopener noreferrer" aria-label="${name}：ここへの行き方（Googleマップ）"><svg class="icon" aria-hidden="true"><use href="#icon-route"></use></svg>ここへの行き方</a>
+        <a class="btn" href="${esc(urls.view)}" target="_blank" rel="noopener noreferrer" aria-label="${name}：Googleマップで場所を見る"><svg class="icon" width="18" height="18" aria-hidden="true"><use href="#icon-pin"></use></svg>Googleマップで場所を見る</a>
+        <a class="btn sub" href="${esc(urls.route)}" target="_blank" rel="noopener noreferrer" aria-label="${name}：ここへの行き方（Googleマップ）"><svg class="icon" width="18" height="18" aria-hidden="true"><use href="#icon-route"></use></svg>ここへの行き方</a>
         ${preview?`<button type="button" class="btn sub" data-map-toggle aria-expanded="false" aria-label="${name}の地図を表示">地図を表示</button>`:""}
       </div><div class="spot-map" hidden></div>`;
     } else if(anyInfo){
@@ -144,7 +204,7 @@ function buildSpots(){
   const overview=String(window.RALLY_SPOTS_OVERVIEW_URL||"").trim();
   const overviewBox=$("spotsOverview");
   if(overview&&OVERVIEW_URL_OK.test(overview)&&info.every(x=>x.target)){
-    overviewBox.innerHTML=`<a class="btn sub" href="${esc(overview)}" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>全ポイントの地図を開く</a>`;
+    overviewBox.innerHTML=`<a class="btn sub" href="${esc(overview)}" target="_blank" rel="noopener noreferrer"><svg class="icon" width="18" height="18" aria-hidden="true"><use href="#icon-pin"></use></svg>全ポイントの地図を開く</a>`;
     overviewBox.hidden=false;
   } else overviewBox.hidden=true;
 }
@@ -272,20 +332,22 @@ function scanMessage(code,again,complete,current){
 
 // ---- 端末内の保存 ----
 async function getLocalStamps(){
-  return JSON.parse(localStorage.getItem("stamp_rally_stamps") || "[]");
+  return readStampList(stampsKey);
 }
 
-const timesKey="stamp_rally_stamp_times";
 function getStampTimes(){
-  try{ return JSON.parse(localStorage.getItem(timesKey) || "{}"); }catch(error){ return {}; }
+  try{
+    const value=JSON.parse(store.get(timesKey)||"{}");
+    return value&&typeof value==="object"&&!Array.isArray(value)?value:{};
+  }catch(error){ return {}; }
 }
 
 async function saveLocalStamp(code){
   const current=await getLocalStamps();
   if(!current.includes(code)){
     current.push(code);
-    localStorage.setItem("stamp_rally_stamps",JSON.stringify(current));
-    localStorage.setItem(timesKey,JSON.stringify({...getStampTimes(),[code]:new Date().toISOString()}));
+    store.set(stampsKey,JSON.stringify(current));
+    store.set(timesKey,JSON.stringify({...getStampTimes(),[code]:new Date().toISOString()}));
   }
   return current;
 }
@@ -326,24 +388,23 @@ async function isServerCompleted(){
 }
 
 // サーバーへの記録に失敗したスタンプ（次回表示時に再送します）
-const pendingKey="stamp_rally_pending";
 function getPending(){
-  return JSON.parse(localStorage.getItem(pendingKey) || "[]");
+  return readStampList(pendingKey);
 }
 function setPending(list){
-  if(list.length) localStorage.setItem(pendingKey,JSON.stringify(list));
-  else localStorage.removeItem(pendingKey);
+  if(list.length) store.set(pendingKey,JSON.stringify(list));
+  else store.remove(pendingKey);
 }
 
 function showSurveyLink(){
   const link=document.getElementById("surveyLink");
   link.href=surveyUrl();
-  link.classList.remove("hidden");
+  link.hidden=false;
 }
 
 // 戻り値：{completed: サーバーでコンプリートを確認, failed: 通信に失敗}
 async function recordStamp(code){
-  if(!STAMPS[code]) {
+  if(!isStamp(code)) {
     showResult({tone:"info",kicker:"QRコード",title:phrases("このQRコードは","登録されていません"),
       body:"会場に掲示されているスタンプラリーのQRコードを読み取ってください。"});
     return {completed:false,failed:false};
@@ -416,7 +477,7 @@ async function restoreCompletion(){
     if(!STAMP_KEYS.every(k=>current.includes(k))) return;
     if(await isServerCompleted()) return showSurveyLink();
     // 端末では6個そろっているのにサーバーに記録が足りない場合は、取得順に再送します。
-    setPending(current.filter(k=>STAMPS[k]));
+    setPending(current);
     if(await resendPending()) showSurveyLink();
   } catch(error){
     console.error(error);
@@ -429,9 +490,15 @@ async function restoreCompletion(){
 async function init(){
   buildSpots();
   const params=new URLSearchParams(location.search);
-  const code=params.get("stamp");
+  // QRコードの作成ツールなどで、大文字や前後の空白が入っていても、同じスタンプとして扱う
+  const code=(params.get("stamp")||"").trim().toLowerCase();
   const current=await getLocalStamps();
   render(current);
+  if(storageBlocked) $("storageNote").hidden=false;
+  if(migrated&&!code){
+    showResult({tone:"info",code:"check",kicker:"引き継ぎ",title:phrases("以前の進み具合を","引き継ぎました"),
+      body:`取得済みのスタンプ：${migrated.stamps}個`});
+  }
   let result={completed:false,failed:false};
   if(code){
     // 再読み込みで同じ読み取りが二重に記録されないよう、URLからstampを外します。
@@ -439,6 +506,7 @@ async function init(){
     const query=params.toString();
     history.replaceState(null,"",location.pathname+(query?`?${query}`:"")+location.hash);
     result=await recordStamp(code);
+    if(storageBlocked) $("storageNote").hidden=false;
   }
   // 通信に失敗した直後は「再送する」ボタンに任せます。
   if(!result.completed && !result.failed) await restoreCompletion();
