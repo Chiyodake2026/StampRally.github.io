@@ -1,97 +1,87 @@
-:root{
-  --paper:#f3f1ec;--surface:#fffdf9;--ink:#1c2427;--muted:#6b7472;--line:#dfdad0;--stone:#b3ab9c;
-  --water:#2a7b8e;--water-deep:#174b57;--water-soft:#dcecef;--amber:#8a5a10;--amber-soft:#f8efdc;--amber-line:#e7cf9f;
-  --serif:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
-  --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
-  color-scheme:light;
-}
-*{box-sizing:border-box}
-body{font-family:var(--sans);margin:0;background:var(--paper);color:var(--ink);line-height:1.65;-webkit-text-size-adjust:100%}
-body:before{content:"";display:block;height:4px;background:var(--water-deep)}
-.container{max-width:600px;margin:auto;padding:20px 16px 40px}
-.page-head{padding:16px 4px 8px}
-.eyebrow{font-size:10.5px;letter-spacing:.2em;color:var(--muted);margin:0 0 12px}
-h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,7.4vw,34px);line-height:1.3;letter-spacing:.04em;margin:0 0 10px}
-#lead{color:var(--muted);margin:0 0 18px}
+/* アンケート・規約ページのスタイル。色・フォント・角丸は ../brand.css の変数を使います。 */
+.container{max-width:600px;margin:auto;padding:20px var(--space-4) 40px}
+.page-head{padding:var(--space-4) 4px var(--space-2)}
+.eyebrow{font-size:12px;letter-spacing:.18em;color:var(--color-text-muted);margin:0 0 var(--space-2)}
+h1{font-weight:700;font-size:clamp(26px,7.4vw,34px);line-height:1.3;letter-spacing:.02em;margin:0 0 var(--space-2)}
+#lead{color:var(--color-text-muted);margin:0 0 var(--space-4)}
 
 form{display:block}
-.block{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 18px 10px;margin-bottom:14px}
-label{display:block;margin:16px 0;font-weight:600;font-size:15px}
-input,select,textarea,button{box-sizing:border-box;width:100%;font:inherit;font-size:16px;padding:12px;margin-top:7px;border:1px solid #cfc9bd;border-radius:10px;background:#fff;color:var(--ink)}
-select{-webkit-appearance:none;appearance:none;min-height:48px;padding-right:40px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%236b7472' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center}
+.block{background:var(--color-surface);border:2px solid var(--color-line);border-radius:var(--radius-card);padding:6px 20px 10px;margin-bottom:var(--space-4)}
+label{display:block;margin:var(--space-4) 0;font-weight:700;font-size:15px}
+input,select,textarea,button{box-sizing:border-box;width:100%;font:inherit;font-size:16px;padding:12px;margin-top:7px;border:2px solid var(--color-secondary);border-radius:var(--radius-control);background:var(--color-white);color:var(--color-text)}
+input:focus,select:focus,textarea:focus{outline:3px solid var(--color-primary);outline-offset:1px;border-color:var(--color-primary)}
+input[readonly]{background:var(--tint-primary-08);border-color:var(--color-line);color:var(--color-text-muted);letter-spacing:.06em}
+/* iOSでは選択欄が標準の見た目だと高さが潰れるため、独自の見た目にする */
+select{-webkit-appearance:none;appearance:none;min-height:48px;padding-right:40px;background:var(--color-white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%2330557e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center}
 input:not([type=checkbox]):not([type=radio]){min-height:48px}
-input:focus,select:focus,textarea:focus{outline:2px solid var(--water);outline-offset:1px;border-color:var(--water)}
-input[readonly]{background:#f0ede6;color:var(--muted);letter-spacing:.06em}
-button{background:var(--water-deep);border-color:var(--water-deep);color:#fff;font-weight:700;cursor:pointer;padding:14px}
+button{background:var(--color-primary);border-color:var(--color-primary);color:var(--color-on-primary);font-weight:700;cursor:pointer;padding:14px}
 button:disabled{opacity:.6;cursor:wait}
-#submitBtn{margin-top:4px}
-.hint{display:block;margin-top:6px;font-size:12px;font-weight:400;color:var(--muted)}
-.note{font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.7}
+#submitBtn{margin-top:4px;min-height:52px}
+.hint{display:block;margin-top:6px;font-size:13px;font-weight:400;color:var(--color-text-muted)}
+.note{font-size:13px;color:var(--color-text-muted);margin:0 0 14px;line-height:1.7}
 
 .check{display:flex;gap:10px;align-items:flex-start;font-weight:400}
-.check input{flex:none;width:22px;height:22px;margin:1px 0 0;accent-color:var(--water-deep)}
-.prize{font-weight:700;font-size:16px;margin:12px 0 6px;padding:12px 14px;min-height:48px;align-items:center;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
-.prize:has(input:checked){border-color:var(--water);background:var(--water-soft)}
+.check input{flex:none;width:22px;height:22px;margin:1px 0 0;accent-color:var(--color-primary)}
+.prize{font-weight:700;font-size:16px;margin:var(--space-3) 0 6px;padding:var(--space-3) 14px;min-height:48px;align-items:center;border:2px solid var(--color-line);border-radius:var(--radius-control);background:var(--color-white);cursor:pointer}
+.prize:has(input:checked){border-color:var(--color-primary);background:var(--tint-accent-12)}
 .prize input{margin:0}
 
 fieldset{border:0;padding:0;margin:0}
 fieldset[hidden]{display:none}
-legend{font-weight:700;padding:0;margin:16px 0 10px;font-size:15px;line-height:1.55}
-#shipping{border-top:1px solid var(--line);margin-top:4px}
-#shipping legend{float:left;width:100%;font-family:var(--serif);font-size:17px;margin:18px 0 10px}
+legend{font-weight:700;padding:0;margin:var(--space-4) 0 10px;font-size:15px;line-height:1.55}
+#shipping{border-top:2px solid var(--color-line);margin-top:4px}
+#shipping legend{float:left;width:100%;font-size:17px;margin:18px 0 10px}
 #shipping legend+*{clear:both}
 
 /* 選択肢（大きめのタップ領域） */
 .choice{margin-bottom:6px}
-.option{display:flex;align-items:center;gap:12px;margin:8px 0;padding:13px 14px;border:1px solid var(--line);border-radius:10px;font-weight:500;background:#fff;cursor:pointer}
-.option input{flex:none;width:20px;height:20px;margin:0;accent-color:var(--water-deep)}
-.option:has(input:checked){border-color:var(--water);background:var(--water-soft)}
+.option{display:flex;align-items:center;gap:var(--space-3);margin:var(--space-2) 0;padding:13px 14px;border:2px solid var(--color-line);border-radius:var(--radius-control);font-weight:700;background:var(--color-white);cursor:pointer}
+.option input{flex:none;width:20px;height:20px;margin:0;accent-color:var(--color-primary)}
+.option:has(input:checked){border-color:var(--color-primary);background:var(--tint-accent-12)}
 .choice .note{margin:10px 0 4px}
 
 /* 個人情報の取り扱い（要点） */
-.privacy-summary{background:#f7f5f0;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:4px 0 6px}
-.ps-title{margin:0 0 8px;font-weight:700;font-size:14px}
+.privacy-summary{background:var(--tint-primary-08);border:2px solid var(--color-line);border-radius:var(--radius-control);padding:14px 16px;margin:4px 0 6px}
+.ps-title{margin:0 0 var(--space-2);font-weight:700;font-size:14px}
 .privacy-summary dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:13px}
-.privacy-summary dt{color:var(--muted);white-space:nowrap}
+.privacy-summary dt{color:var(--color-text-muted);white-space:nowrap}
 .privacy-summary dd{margin:0}
-.text-button{width:auto;min-height:44px;margin:4px 0 -6px;padding:0;border:0;background:none;color:var(--water-deep);font-size:14px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
-.inline-link{display:inline;width:auto;margin:0;padding:0;border:0;background:none;color:var(--water-deep);font-size:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px}
-.consent{margin-top:20px;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.consent:has(input:checked){border-color:var(--water);background:var(--water-soft)}
+.text-button{width:auto;min-height:44px;margin:4px 0 -6px;padding:0;border:0;background:none;color:var(--color-primary);font-size:14px;font-weight:700;text-decoration:underline;text-decoration-color:var(--color-secondary);text-decoration-thickness:2px;text-underline-offset:3px}
+.inline-link{display:inline;width:auto;margin:0;padding:0;border:0;background:none;color:var(--color-primary);font-size:inherit;font-weight:700;text-decoration:underline;text-decoration-color:var(--color-secondary);text-decoration-thickness:2px;text-underline-offset:3px}
+.consent{margin-top:20px;padding:14px;border:2px solid var(--color-line);border-radius:var(--radius-control);background:var(--color-white)}
+.consent:has(input:checked){border-color:var(--color-primary);background:var(--tint-accent-12)}
 
-/* 運営者が記入する箇所 */
-mark.todo{background:var(--amber-soft);color:var(--amber);border:1px dashed var(--amber-line);border-radius:4px;padding:0 4px;font-weight:600;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+/* 運営者が正式な情報を記入する箇所（公開前に文章に置き換えます） */
+mark.todo{background:var(--tint-accent-22);color:var(--color-primary);border:2px dashed var(--color-secondary);border-radius:6px;padding:0 5px;font-weight:700;-webkit-box-decoration-break:clone;box-decoration-break:clone}
 
-#message{font-weight:600;line-height:1.6}
+#message{font-weight:700;line-height:1.6}
 .back{margin-top:24px;font-size:14px}
-.back a{color:var(--water-deep)}
 
 /* プライバシー規約のモーダル（スマートフォンでは下から開くシート） */
-dialog{width:100%;max-width:640px;height:88vh;height:88dvh;max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);margin:auto auto 0;padding:0;border:0;border-radius:18px 18px 0 0;background:var(--surface);color:var(--ink);display:none;flex-direction:column}
-dialog[open]{display:flex;animation:sheet .35s cubic-bezier(.2,.8,.2,1)}
-dialog::backdrop{background:rgba(20,28,30,.45)}
+dialog{width:100%;max-width:640px;height:88vh;height:88dvh;max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);margin:auto auto 0;padding:0;border:0;border-radius:var(--radius-card) var(--radius-card) 0 0;background:var(--color-surface);color:var(--color-text);display:none;flex-direction:column}
+dialog[open]{display:flex;animation:sheet .35s var(--ease)}
+dialog::backdrop{background:rgba(48,85,126,.55)}
 html:has(dialog[open]){overflow:hidden}
-.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:14px 12px 10px 20px;border-bottom:1px solid var(--line)}
+.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:14px 12px 10px 20px;border-bottom:2px solid var(--color-line)}
 .dialog-head p{margin:0;font-weight:700}
-.dialog-close{width:44px;height:44px;margin:0;padding:0;border:0;background:none;color:var(--muted);font-size:22px}
+.dialog-close{width:44px;height:44px;margin:0;padding:0;border:0;background:none;color:var(--color-text-muted);font-size:22px}
 .dialog-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:4px 20px 16px}
 .dialog-head,.dialog-foot{flex:none}
 .dialog-body:focus{outline:none}
-.ph{display:inline-block}
-.dialog-foot{padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+.dialog-foot{padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:2px solid var(--color-line)}
 .dialog-foot button{margin:0}
-@media(min-width:680px){dialog{height:min(80vh,760px);margin:auto;border-radius:18px}}
+@media(min-width:680px){dialog{height:min(80vh,760px);margin:auto;border-radius:var(--radius-card)}}
 @keyframes sheet{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
 
 /* 規約本文（privacy.html とモーダル共通） */
 .policy{font-size:14px;line-height:1.85}
 .policy h1{font-size:22px;margin:18px 0 10px}
-.policy h2{font-family:var(--serif);font-size:16px;font-weight:600;margin:24px 0 6px;padding-top:14px;border-top:1px solid var(--line)}
+.policy h2{font-size:16px;font-weight:700;margin:24px 0 6px;padding-top:14px;border-top:2px solid var(--color-line)}
 .policy ul{padding-left:1.2em;margin:6px 0}
 .policy li{margin:4px 0}
 .policy p{margin:6px 0}
-.draft-banner{margin:14px 0 0;padding:12px 14px;border-radius:10px;background:var(--amber-soft);border:1px solid var(--amber-line);color:#4a3a1c;font-size:13px;line-height:1.7}
-.policy-meta{margin-top:20px;color:var(--muted);font-size:12.5px}
-.policy-page .policy{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 20px 20px}
+.draft-banner{margin:14px 0 0;padding:var(--space-3) 14px;border-radius:var(--radius-control);background:var(--tint-accent-22);border:2px dashed var(--color-secondary);color:var(--color-text);font-size:13px;line-height:1.7}
+.policy-meta{margin-top:20px;color:var(--color-text-muted);font-size:13px}
+.policy-page .policy{background:var(--color-surface);border:2px solid var(--color-line);border-radius:var(--radius-card);padding:6px 20px 20px}
 
 @media(prefers-reduced-motion:reduce){dialog[open]{animation:none}}

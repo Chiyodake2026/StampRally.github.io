@@ -29,6 +29,13 @@ const formatTime=iso=>new Date(iso).toLocaleString("ja-JP",{month:"numeric",day:
 const surveyUrl=()=>`survey/?participant_id=${encodeURIComponent(participantId)}`;
 // 日本語の見出しを文節の区切りでだけ折り返します（「獲得しま／した」のような改行を防ぐ）。
 const phrases=(...parts)=>parts.map(p=>`<span class="ph">${p}</span>`).join("");
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+// 景品を希望できる条件：このリポジトリでは「全スタンプの取得」と定義されています
+// （アンケートの送信を受け付ける条件＝SQLの is_completed も、同じく6個すべてです）。
+// ここを変えるときは、sql/schema.sql の is_completed なども合わせて変更してください。
+const PRIZE_REQUIRED=STAMP_KEYS.length;
 
 function haptic(pattern){
   try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(error){ /* 未対応の端末では何もしない */ }
@@ -41,9 +48,8 @@ function replay(el,className){
 // fx: {code, kind:"new"|"again", complete} … 直前に読み取ったスタンプの演出
 function render(stamps,fx={}){
   const complete=STAMP_KEYS.every(k=>stamps.includes(k));
-  const countEl=document.getElementById("count");
-  countEl.textContent=stamps.length;
-  if(fx.kind==="new") replay(countEl,"bump");
+  renderBanner(stamps,fx);
+  updateSpots(stamps,fx);
 
   document.getElementById("stamps").innerHTML=STAMP_KEYS.map(k=>{
     const got=stamps.includes(k), state=fx.code===k?` is-${fx.kind}`:"";
@@ -62,6 +68,105 @@ function render(stamps,fx={}){
     complete ? "川が完成しました！" :
     stamps.length ? `あと ${STAMP_KEYS.length-stamps.length} か所で川が完成します。` :
     "QRコードを読み取って、川をつくろう。";
+}
+
+// ---- 進捗バナー ----
+// 残り個数＝必要なスタンプ数 − 取得済みのスタンプ数。文言は、取得状況に応じて切り替えます。
+// 「景品を希望できる」は、希望の手続き（アンケート）に進める条件のことで、景品の受け取りを約束する表現にはしていません。
+function bannerContent(got,total){
+  const remain=Math.max(total-got,0);
+  if(remain===0) return {state:"complete",message:"コンプリート！景品を希望できる条件を達成したよ！"};
+  if(got===0) return {state:"empty",message:"スタンプを集めて、景品の希望に進もう！"};
+  if(remain===1) return {state:"almost",message:"あと1個！景品の希望まで、あと少し！"};
+  return {state:"progress",message:`あと${remain}個で、景品を希望できるよ！`};
+}
+function renderBanner(stamps,fx){
+  const total=PRIZE_REQUIRED, got=Math.min(stamps.length,total), remain=Math.max(total-got,0);
+  const {state,message}=bannerContent(got,total);
+  const banner=$("progressBanner"), countEl=$("count"), remainEl=$("remain"), bar=$("bannerBar");
+  banner.dataset.state=state;
+  countEl.textContent=got;
+  remainEl.textContent=remain;
+  $("total").textContent=total;
+  $("bannerMessage").textContent=message;
+  const notice=String((window.RALLY_PRIZE||{}).notice||"").trim();
+  $("bannerNote").textContent=notice; $("bannerNote").hidden=!notice;
+  bar.setAttribute("aria-valuemax",total); bar.setAttribute("aria-valuenow",got);
+  bar.setAttribute("aria-valuetext",remain?`${got}個取得、あと${remain}個`:`${total}個すべて取得`);
+  bar.innerHTML=Array.from({length:total},(_,i)=>`<span class="seg${i<got?" on":""}${fx.kind==="new"&&i===got-1?" is-new":""}"></span>`).join("");
+  if(fx.kind==="new"){ replay(countEl,"bump"); replay(remainEl,"bump"); replay(banner,"is-new"); }
+}
+
+// ---- スタンプポイントの場所（js/rally-data.js の登録内容） ----
+// 住所・座標・検索語のどれもないポイントには、地図のリンクを出しません（場所を推測しません）。
+const MAPS="https://www.google.com/maps";
+function mapTarget(spot){
+  const hasNum=v=>v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v));
+  if(hasNum(spot.lat)&&hasNum(spot.lng)){
+    const lat=Number(spot.lat), lng=Number(spot.lng);
+    if(Math.abs(lat)<=90&&Math.abs(lng)<=180&&!(lat===0&&lng===0)) return {query:`${lat},${lng}`};
+  }
+  const text=String(spot.mapQuery||spot.address||"").trim();
+  return text?{query:text}:null;
+}
+const mapUrls=t=>({
+  view:`${MAPS}/search/?api=1&query=${encodeURIComponent(t.query)}`,
+  route:`${MAPS}/dir/?api=1&destination=${encodeURIComponent(t.query)}&travelmode=walking`,
+  embed:`${MAPS}?q=${encodeURIComponent(t.query)}&output=embed&hl=ja`
+});
+const OVERVIEW_URL_OK=/^https:\/\/(www\.google\.(com|co\.jp)\/maps|maps\.app\.goo\.gl|goo\.gl\/maps)/;
+
+function buildSpots(){
+  const data=window.RALLY_SPOTS||{}, preview=window.RALLY_SPOTS_PREVIEW!==false;
+  const info=STAMP_KEYS.map(k=>{
+    const spot=data[k]||{};
+    return {k,desc:String(spot.description||"").trim(),target:mapTarget(spot)};
+  });
+  const anyInfo=info.some(x=>x.desc||x.target);
+  $("spotList").innerHTML=(anyInfo?"":`<li class="spot-lead small">各ポイントの場所は、準備ができしだい、ここに表示されます。</li>`)+info.map(({k,desc,target})=>{
+    const name=esc(STAMPS[k].name), urls=target&&mapUrls(target);
+    let body="";
+    if(desc) body+=`<p class="spot-desc">${esc(desc)}</p>`;
+    if(target){
+      body+=`<div class="spot-actions">
+        <a class="btn" href="${esc(urls.view)}" target="_blank" rel="noopener noreferrer" aria-label="${name}：Googleマップで場所を見る"><svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>Googleマップで場所を見る</a>
+        <a class="btn sub" href="${esc(urls.route)}" target="_blank" rel="noopener noreferrer" aria-label="${name}：ここへの行き方（Googleマップ）"><svg class="icon" aria-hidden="true"><use href="#icon-route"></use></svg>ここへの行き方</a>
+        ${preview?`<button type="button" class="btn sub" data-map-toggle aria-expanded="false" aria-label="${name}の地図を表示">地図を表示</button>`:""}
+      </div><div class="spot-map" hidden></div>`;
+    } else if(anyInfo){
+      body+=`<p class="spot-desc pending">${desc?"地図は準備中です。":"場所は準備中です。"}</p>`;
+    }
+    return `<li class="spot" data-code="${k}"${target?` data-embed="${esc(urls.embed)}"`:""}>
+      <div class="spot-head"><span class="spot-seal">${icon(k)}</span><span class="spot-name">${name}</span><span class="spot-state">未獲得</span></div>${body}</li>`;
+  }).join("");
+
+  // 全ポイントをまとめた地図：6か所すべての場所が登録済みで、共有URLが設定されているときだけ表示
+  const overview=String(window.RALLY_SPOTS_OVERVIEW_URL||"").trim();
+  const overviewBox=$("spotsOverview");
+  if(overview&&OVERVIEW_URL_OK.test(overview)&&info.every(x=>x.target)){
+    overviewBox.innerHTML=`<a class="btn sub" href="${esc(overview)}" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#icon-pin"></use></svg>全ポイントの地図を開く</a>`;
+    overviewBox.hidden=false;
+  } else overviewBox.hidden=true;
+}
+// 地図のプレビュー：ボタンを押したときだけ、Googleマップを読み込む（表示速度のため）
+$("spotList").addEventListener("click",e=>{
+  const button=e.target.closest("[data-map-toggle]"); if(!button) return;
+  const item=button.closest(".spot"), box=item.querySelector(".spot-map");
+  const open=box.hidden;
+  if(open){
+    box.innerHTML=`<iframe src="${esc(item.dataset.embed)}" title="${esc(STAMPS[item.dataset.code].name)}の地図" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>`;
+  } else box.innerHTML="";
+  box.hidden=!open;
+  button.textContent=open?"地図を閉じる":"地図を表示";
+  button.setAttribute("aria-expanded",String(open));
+});
+function updateSpots(stamps,fx){
+  document.querySelectorAll("#spotList .spot").forEach(li=>{
+    const k=li.dataset.code, got=stamps.includes(k);
+    li.classList.toggle("got",got);
+    li.querySelector(".spot-state").textContent=got?"獲得済み":"未獲得";
+    if(fx.code===k&&fx.kind==="new") replay(li,"is-new");
+  });
 }
 
 // 川の図：点線（暗渠）の上に、獲得したスタンプの区間だけ水が現れます。
@@ -322,6 +427,7 @@ async function restoreCompletion(){
 }
 
 async function init(){
+  buildSpots();
   const params=new URLSearchParams(location.search);
   const code=params.get("stamp");
   const current=await getLocalStamps();

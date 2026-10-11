@@ -3,12 +3,20 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f3f1ec">
+  <meta name="theme-color" content="#30557e">
   <title>みんなで川をつくろう｜デジタルスタンプラリー</title>
+  <!-- 欧文・数字：Josefin Sans Bold（Google Fonts / SIL Open Font License） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@700&display=swap">
+  <!-- 日本語：筑紫A丸ゴシックのWebフォントを契約した場合は、ここに読み込みタグを追加します（README参照）
+  <link rel="stylesheet" href="https://use.typekit.net/（キットID）.css">
+  -->
+  <link rel="stylesheet" href="brand.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<!-- スタンプのアイコン（線画）。スタンプ枠と川の図で共通に使います。 -->
+<!-- スタンプのアイコン（線画）。スタンプ枠・川の図・バナーで共通に使います。線の太さ・端の形はすべて同じです。 -->
 <svg class="icon-defs" aria-hidden="true" focusable="false">
   <symbol id="icon-river" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17v-6a7 7 0 0 1 14 0v6"/><path d="M3 20.5c2-1.2 4-1.2 6 0s4 1.2 6 0 4-1.2 6 0"/></symbol>
   <symbol id="icon-bridge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8h20"/><path d="M4 8v9M20 8v9"/><path d="M4 15a8 5 0 0 1 16 0"/><path d="M3 20.5c2-1.2 4-1.2 6 0s4 1.2 6 0 4-1.2 6 0"/></symbol>
@@ -16,49 +24,80 @@
   <symbol id="icon-island" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16.5c1.5-3.5 4-5 7-5s5.5 1.5 7 5"/><path d="M12 11.5V6"/><path d="M12 6c-1.6-1.5-3.5-1.6-5-.6M12 6c1.6-1.5 3.5-1.6 5-.6"/><path d="M3 19.5c2-1.2 4-1.2 6 0s4 1.2 6 0 4-1.2 6 0"/></symbol>
   <symbol id="icon-water" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c3.2 4.2 5.5 7.2 5.5 10.3a5.5 5.5 0 0 1-11 0c0-3.1 2.3-6.1 5.5-10.3z"/><path d="M9.6 14.6a2.4 2.4 0 0 0 2.4 2.4"/></symbol>
   <symbol id="icon-goal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V3.5"/><path d="M6 4.5h11l-2.2 3.5 2.2 3.5H6"/></symbol>
+  <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="icon-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6.5-5.6 6.5-11a6.5 6.5 0 0 0-13 0c0 5.4 6.5 11 6.5 11z"/><circle cx="12" cy="10" r="2.3"/></symbol>
+  <symbol id="icon-route" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6.5a3.5 3.5 0 0 0 0-7h-5a3.5 3.5 0 0 1 0-7H16"/></symbol>
 </svg>
 
 <header class="hero">
-  <p class="eyebrow">IWAMOTOCHO CULVERT PROJECT</p>
+  <p class="eyebrow en">IWAMOTOCHO CULVERT PROJECT</p>
   <h1><span class="ph">みんなで</span><span class="ph">川をつくろう</span></h1>
   <p class="lead"><span class="ph">QRコードを見つけて、</span><span class="ph">暗渠の「川」を</span><span class="ph">完成させよう。</span><br>
     （プロトタイプ）</p>
 </header>
 
 <main class="container">
+  <!-- 進捗バナー：取得数と、景品を希望できるまでの残り個数 -->
+  <section id="progressBanner" class="banner" data-state="empty" aria-label="スタンプの進み具合">
+    <div class="banner-top">
+      <p class="banner-count">
+        <span class="banner-label en">STAMPS</span>
+        <span class="banner-figure"><span id="count" class="count num">0</span><span class="of num">/</span><span id="total" class="num">6</span></span>
+      </p>
+      <p class="banner-remain">
+        <span class="remain-wrap">
+          <span class="banner-label">あと</span>
+          <span class="banner-figure"><span id="remain" class="num">6</span><span class="unit">個</span></span>
+        </span>
+        <span class="done-wrap">
+          <svg class="icon done-icon" aria-hidden="true"><use href="#icon-check"></use></svg>
+          <span class="banner-label en">COMPLETE</span>
+        </span>
+      </p>
+    </div>
+    <div id="bannerBar" class="banner-bar" role="progressbar" aria-label="スタンプ獲得の進み具合" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0"></div>
+    <p id="bannerMessage" class="banner-message">スタンプを集めて、景品の希望に進もう！</p>
+    <p id="bannerNote" class="banner-note" hidden></p>
+  </section>
+
   <!-- QRを読み取った結果（獲得・獲得済み・通信エラー・完成） -->
   <section id="scanResult" class="scan-result" role="status" aria-live="polite" hidden></section>
 
+  <a id="surveyLink" class="survey-link hidden" href="survey/">
+    <span class="survey-link-title">アンケートに回答する</span>
+    <span class="survey-link-sub">コンプリートした方へ。景品の希望もこちらから</span>
+  </a>
+
   <section class="card river-card">
-    <div class="card-head">
-      <h2>みんなでつくる川（仮）</h2>
-      <p class="progress" aria-label="獲得したスタンプの数"><span id="count" class="count">0</span><span class="of">/</span><span id="total">6</span></p>
-    </div>
+    <div class="card-head"><h2>みんなでつくる川（仮）</h2></div>
     <div id="river" class="river"></div>
     <p id="riverMessage" class="river-message">QRコードを読み取って、川をつくろう。</p>
   </section>
-
-  <a id="surveyLink" class="survey-link hidden" href="survey/">
-    <span class="survey-link-title">アンケートに回答する</span>
-    <span class="survey-link-sub">コンプリートした方へ。景品の応募もこちらから</span>
-  </a>
 
   <section class="card">
     <div class="card-head"><h2>スタンプ</h2></div>
     <div id="stamps" class="stamps"></div>
   </section>
 
+  <!-- スタンプポイントの場所（js/rally-data.js に登録した内容を表示します） -->
+  <section class="card spots-card" id="spotsCard">
+    <div class="card-head"><h2>スタンプポイント</h2></div>
+    <ul id="spotList" class="spot-list"></ul>
+    <p id="spotsOverview" class="spots-overview" hidden></p>
+  </section>
+
   <section class="card id-card">
     <div class="status-row">
       <span>参加者ID</span>
-      <code id="participantId">読み込み中…</code>
+      <code id="participantId" class="num">読み込み中…</code>
     </div>
     <p class="small">このIDは端末ごとに自動発行されます。スタンプの取得では名前などの個人情報は収集しません。</p>
   </section>
 </main>
 
-<footer>Digital Stamp Rally Prototype</footer>
+<footer class="en">DIGITAL STAMP RALLY PROTOTYPE</footer>
 <script src="js/config.js"></script>
+<script src="js/rally-data.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

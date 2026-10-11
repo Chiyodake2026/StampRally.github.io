@@ -1,0 +1,74 @@
+/*
+ * ブランド設定（すきまキッズラボ）
+ * 色・フォント・角丸・余白は、ここだけで管理します。各ページのCSSは、ここの変数を使います。
+ * 色を変えたいときは、このファイルの :root だけを書き換えてください。
+ */
+:root{
+  /* ── ブランドカラー（この3色と白だけを基本にします） ── */
+  --color-primary:#30557e;    /* 見出し・主要ボタン・重要な文字・強いコントラストが必要な要素 */
+  --color-secondary:#4d89b7;  /* 進捗・補助的なボタンの枠・線・アイコン・スタンプの状態 */
+  --color-accent:#62adca;     /* アクセント・アニメーション・進捗の強調 */
+  --color-white:#ffffff;
+
+  /* ── 読みやすさの基準（コントラスト比） ──
+   * 主色 #30557e は白の上で 7.7:1。文字はこの色を基本にします。
+   * サブカラー #4d89b7 は白の上で 3.8:1、アクセント #62adca は 2.5:1 のため、
+   * 小さな文字には使わず、線・アイコン・図形・大きな文字にだけ使います。 */
+
+  /* ── 上の色を白に重ねた淡い色（背景・罫線用。色味はブランドカラーと同じ） ──
+   * accent 12%：ページの背景 / accent 22%・35%：区切りや面 / secondary 25%：罫線 / primary 8%：控えめな面 */
+  --tint-accent-12:#ecf5f9;
+  --tint-accent-22:#dcedf3;
+  --tint-accent-35:#c8e2ec;
+  --tint-secondary-25:#d2e2ed;
+  --tint-primary-08:#eef1f5;
+
+  /* ── 役割ごとの色 ── */
+  --color-bg:var(--tint-accent-12);
+  --color-surface:var(--color-white);
+  --color-text:var(--color-primary);
+  --color-text-muted:#4f6e91;   /* 主色を白に85%重ねた色。白の上で 5.3:1 */
+  --color-line:var(--tint-secondary-25);
+  --color-on-primary:var(--color-white);
+  --color-on-primary-muted:rgba(255,255,255,.84);
+
+  /* ── フォント ──
+   * 日本語：筑紫A丸ゴシック。有料フォントのため、フォントファイルはこのリポジトリに含めていません。
+   *   Adobe Fonts などで契約してWebフォントを読み込むと、先頭の名前で表示されます（README参照）。
+   *   使えないときは、下のフォントに順に切り替わります（実際に表示されるのは筑紫A丸ゴシックではありません）。
+   * 欧文・数字・英語ラベル：Josefin Sans Bold（Google Fontsから読み込み） */
+  --font-ja:"fot-tsukuardgothic-std","FOT-TsukuARdGothic Std","FOT-筑紫A丸ゴシック Std","筑紫A丸ゴシック","Tsukushi A Round Gothic",
+    "Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN","Yu Gothic","YuGothic","Noto Sans JP","Meiryo",sans-serif;
+  --font-en:"Josefin Sans",var(--font-ja);
+
+  /* ── 角丸・余白 ── */
+  --radius-card:20px;      /* カード・パネル */
+  --radius-control:14px;   /* ボタン・入力欄・スタンプ枠 */
+  --radius-pill:999px;     /* バッジ */
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;
+
+  --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:light;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--color-bg);color:var(--color-text);font-family:var(--font-ja);line-height:1.7;-webkit-tap-highlight-color:transparent}
+body:before{content:"";display:block;height:6px;background:var(--color-primary)}
+body{padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+
+/* 欧文・数字・英語ラベル（Josefin Sans Bold） */
+.en{font-family:var(--font-en);font-weight:700;letter-spacing:.14em}
+.num{font-family:var(--font-en);font-weight:700;font-variant-numeric:lining-nums tabular-nums}
+
+/* 日本語の見出しを、文節の区切りでだけ折り返す */
+.ph{display:inline-block}
+
+a{color:var(--color-primary);text-decoration-color:var(--color-secondary);text-underline-offset:3px;text-decoration-thickness:2px}
+:focus-visible{outline:3px solid var(--color-primary);outline-offset:2px}
+
+/* ボタン（共通）：主要＝主色で塗る / 補助＝白地にサブカラーの枠 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:48px;padding:10px 18px;border-radius:var(--radius-control);
+  font:inherit;font-weight:700;font-size:15px;text-decoration:none;cursor:pointer;border:2px solid var(--color-primary);background:var(--color-primary);color:var(--color-on-primary)}
+.btn.sub{background:var(--color-white);border-color:var(--color-secondary);color:var(--color-primary)}
+.btn:disabled{opacity:.6;cursor:wait}
